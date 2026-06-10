@@ -13,11 +13,11 @@ vars:
   # It will build, copy to your testing vault and reload Obsidian app
   #
   # PLACEHOLDER VALUES:
-  PLUGIN_ID: plugin-template
-  PLUGIN_NAME: Plugin Template
-  PLUGIN_DESCRIPTION: A template for creating Obsidian plugins
-  AUTHOR_NAME: # Stefan Danzl
-  AUTHOR_URL: # https://github.com/stefandanzl
+  PLUGIN_ID: pomodoro-logger
+  PLUGIN_NAME: Pomodoro Logger
+  PLUGIN_DESCRIPTION: Helps you keeping track of past pomodoro slots in Obsidian markdown tables.
+  AUTHOR_NAME: Stefan Danzl
+  AUTHOR_URL: https://github.com/stefandanzl
   ##########################################################################################
   #
   DIR_PLUGIN: "{{.VAULTS_DIR}}/{{.VAULT_NAME}}/.obsidian/plugins/{{.PLUGIN_ID}}"
