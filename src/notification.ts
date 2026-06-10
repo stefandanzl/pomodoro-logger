@@ -80,13 +80,14 @@ export class NotificationSystem {
 			const volume = this.plugin.settings.soundVolume / 100;
 			gainNode.gain.setValueAtTime(volume, this.audioContext.currentTime);
 
-			// Play the sound
+			// Play the sound with longer duration for Bluetooth headphones
 			const now = this.audioContext.currentTime;
+			const duration = 0.8; // 800ms duration (increased from 200ms)
 			oscillator.start(now);
-			oscillator.stop(now + 0.2); // 200ms duration
+			oscillator.stop(now + duration);
 
 			// Fade out for smooth ending
-			gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.2);
+			gainNode.gain.exponentialRampToValueAtTime(0.01, now + duration);
 
 		} catch (error) {
 			console.error('Error playing notification sound:', error);

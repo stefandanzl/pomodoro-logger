@@ -13,7 +13,7 @@ available in the app when your plugin is enabled.
 	padding: 20px;
 }
 
-.timer-container {
+.pomodoro-timer-modal .timer-container {
 	display: flex;
 	flex-direction: column;
 	align-items: center;
@@ -21,25 +21,25 @@ available in the app when your plugin is enabled.
 	margin: 20px 0;
 }
 
-.progress-circle {
+.pomodoro-timer-modal .progress-circle {
 	position: relative;
 	width: 200px;
 	height: 200px;
 }
 
-.progress-svg {
+.pomodoro-timer-modal .progress-svg {
 	width: 100%;
 	height: 100%;
 	transform: rotate(-90deg);
 }
 
-.progress-bg {
+.pomodoro-timer-modal .progress-bg {
 	fill: none;
 	stroke: var(--background-modifier-border);
 	stroke-width: 3;
 }
 
-.progress-fill {
+.pomodoro-timer-modal .progress-fill {
 	fill: none;
 	stroke: var(--interactive-accent);
 	stroke-width: 3;
@@ -49,7 +49,7 @@ available in the app when your plugin is enabled.
 	transition: stroke-dashoffset 1s linear;
 }
 
-.time-display-container {
+.pomodoro-timer-modal .time-display-container {
 	position: absolute;
 	top: 50%;
 	left: 50%;
@@ -57,25 +57,25 @@ available in the app when your plugin is enabled.
 	text-align: center;
 }
 
-.time-display {
+.pomodoro-timer-modal .time-display {
 	font-size: 2.5rem;
 	font-weight: bold;
 	color: var(--text-normal);
 }
 
-.status-text {
+.pomodoro-timer-modal .status-text {
 	font-size: 1rem;
 	color: var(--text-muted);
 	margin-top: 5px;
 }
 
-.button-container {
+.pomodoro-timer-modal .button-container {
 	display: flex;
 	gap: 10px;
 }
 
-.start-pause-btn,
-.stop-btn {
+.pomodoro-timer-modal .start-pause-btn,
+.pomodoro-timer-modal .stop-btn {
 	padding: 10px 20px;
 	border: none;
 	border-radius: 5px;
@@ -84,25 +84,25 @@ available in the app when your plugin is enabled.
 	transition: background-color 0.2s;
 }
 
-.start-pause-btn {
+.pomodoro-timer-modal .start-pause-btn {
 	background-color: var(--interactive-accent);
 	color: var(--text-on-accent);
 }
 
-.start-pause-btn:hover {
+.pomodoro-timer-modal .start-pause-btn:hover {
 	background-color: var(--interactive-hover);
 }
 
-.stop-btn {
+.pomodoro-timer-modal .stop-btn {
 	background-color: var(--background-modifier-error);
 	color: var(--text-on-accent);
 }
 
-.stop-btn:hover {
+.pomodoro-timer-modal .stop-btn:hover {
 	background-color: var(--text-error);
 }
 
-.session-info {
+.pomodoro-timer-modal .session-info {
 	color: var(--text-muted);
 	font-size: 0.9rem;
 }
@@ -115,36 +115,36 @@ available in the app when your plugin is enabled.
 	padding: 20px;
 }
 
-.panel-controls {
+.pomodoro-side-panel .panel-controls {
 	display: flex;
 	gap: 10px;
 	margin-bottom: 20px;
 }
 
-.contribution-grid-container {
+.pomodoro-side-panel .contribution-grid-container {
 	flex: 1;
 	overflow-y: auto;
 }
 
-.contribution-grid {
+.pomodoro-side-panel .contribution-grid {
 	display: flex;
 	gap: 10px;
 }
 
-.week-column {
+.pomodoro-side-panel .week-column {
 	display: flex;
 	flex-direction: column;
 	gap: 2px;
 }
 
-.day-label {
+.pomodoro-side-panel .day-label {
 	font-size: 0.7rem;
 	color: var(--text-muted);
 	text-align: center;
 	height: 12px;
 }
 
-.grid-cell {
+.pomodoro-side-panel .grid-cell {
 	width: 12px;
 	height: 12px;
 	border-radius: 2px;
@@ -152,27 +152,27 @@ available in the app when your plugin is enabled.
 	transition: transform 0.1s;
 }
 
-.grid-cell:hover {
+.pomodoro-side-panel .grid-cell:hover {
 	transform: scale(1.2);
 }
 
-.grid-cell.empty-cell {
+.pomodoro-side-panel .grid-cell.empty-cell {
 	background-color: var(--background-modifier-border);
 }
 
-.grid-cell.productive-cell {
+.pomodoro-side-panel .grid-cell.productive-cell {
 	background-color: var(--text-success);
 }
 
-.grid-cell.unproductive-cell {
+.pomodoro-side-panel .grid-cell.unproductive-cell {
 	background-color: var(--text-error);
 }
 
-.grid-cell.mixed-cell {
+.pomodoro-side-panel .grid-cell.mixed-cell {
 	background-color: var(--text-accent);
 }
 
-.legend {
+.pomodoro-side-panel .legend {
 	display: flex;
 	align-items: center;
 	gap: 15px;
@@ -182,7 +182,7 @@ available in the app when your plugin is enabled.
 	border-radius: 5px;
 }
 
-.legend-item {
+.pomodoro-side-panel .legend-item {
 	display: inline-block;
 	width: 12px;
 	height: 12px;
@@ -190,19 +190,19 @@ available in the app when your plugin is enabled.
 	margin-right: 5px;
 }
 
-.legend-item.productive {
+.pomodoro-side-panel .legend-item.productive {
 	background-color: var(--text-success);
 }
 
-.legend-item.unproductive {
+.pomodoro-side-panel .legend-item.unproductive {
 	background-color: var(--text-error);
 }
 
-.legend-item.empty {
+.pomodoro-side-panel .legend-item.empty {
 	background-color: var(--background-modifier-border);
 }
 
-/* Log Modal Styles */
+/* Form Modal Styles */
 .modal-button-container {
 	display: flex;
 	gap: 10px;
@@ -215,11 +215,11 @@ available in the app when your plugin is enabled.
 	color: var(--text-on-accent);
 }
 
-/* Form styles */
-input[type="datetime-local"],
-input[type="text"],
-select,
-textarea {
+/* Form element styling - scoped to modals */
+.pomodoro-timer-modal input[type="datetime-local"],
+.pomodoro-timer-modal input[type="text"],
+.pomodoro-timer-modal select,
+.pomodoro-timer-modal textarea {
 	width: 100%;
 	padding: 8px;
 	margin: 5px 0 15px 0;
@@ -229,9 +229,25 @@ textarea {
 	color: var(--text-normal);
 }
 
-label {
+.pomodoro-timer-modal label {
 	display: block;
 	font-weight: bold;
 	margin-bottom: 5px;
 	color: var(--text-normal);
+}
+
+/* Workspace leaf styling */
+.workspace-leaf-content[data-type="pomodoro-view"] .pomodoro-side-panel {
+	height: 100%;
+}
+
+/* Prevent conflicts with frontmatter and other Obsidian UI */
+.pomodoro-side-panel *,
+.pomodoro-timer-modal * {
+	box-sizing: border-box;
+}
+
+/* Ensure proper z-index stacking */
+.pomodoro-timer-modal {
+	z-index: 1000;
 }

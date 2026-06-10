@@ -7,11 +7,32 @@ import { PomodoroEntry } from './types';
  */
 export class TableManager {
 	private plugin: PomodoroLoggerPlugin;
-	private readonly TABLE_HEADER = '| Uhrzeit | Topic | +/- | Notizen |';
-	private readonly TABLE_SEPARATOR = '|---|---|---|---|';
 
 	constructor(plugin: PomodoroLoggerPlugin) {
 		this.plugin = plugin;
+	}
+
+	/**
+	 * Get the configured table header
+	 */
+	private get tableHeader(): string {
+		return this.plugin.settings.tableHeader || '| Uhrzeit | Topic | +/- | Notizen |';
+	}
+
+	/**
+	 * Get the configured section title
+	 */
+	private get sectionTitle(): string {
+		return this.plugin.settings.sectionTitle || '## Pomodoro Sessions';
+	}
+
+	/**
+	 * Generate table separator from header
+	 */
+	private generateTableSeparator(): string {
+		const header = this.tableHeader;
+		const columns = header.split('|').filter(col => col.trim() !== '');
+		return '|' + columns.map(() => '---').join('|') + '|';
 	}
 
 	/**
@@ -21,9 +42,13 @@ export class TableManager {
 		const lines = content.split('\n');
 		let tableStartLine = -1;
 
-		// Find the table header
+		// Normalize the configured header for comparison
+		const normalizedConfigHeader = this.normalizeTableHeader(this.tableHeader);
+
+		// Find the table header using robust matching
 		for (let i = 0; i < lines.length; i++) {
-			if (lines[i].trim() === this.TABLE_HEADER) {
+			const normalizedLine = this.normalizeTableHeader(lines[i]);
+			if (normalizedLine === normalizedConfigHeader) {
 				tableStartLine = i;
 				break;
 			}
@@ -46,6 +71,18 @@ export class TableManager {
 	}
 
 	/**
+	 * Normalize table header for robust comparison
+	 * Handles different spacing patterns while preserving column structure
+	 */
+	private normalizeTableHeader(header: string): string {
+		return header
+			.trim()
+			.replace(/\s*\|\s*/g, '|')  // Normalize spacing around pipes
+			.replace(/\s+/g, ' ')         // Normalize multiple spaces to single space
+			.toLowerCase();              // Case-insensitive comparison
+	}
+
+	/**
 	 * Create Pomodoro table in daily note
 	 */
 	createTable(content: string): string {
@@ -59,10 +96,10 @@ export class TableManager {
 		// Add table at the end of the file
 		const tableLines = [
 			'',
-			'## Pomodoro Sessions',
+			this.sectionTitle,
 			'',
-			this.TABLE_HEADER,
-			this.TABLE_SEPARATOR
+			this.tableHeader,
+			this.generateTableSeparator()
 		];
 
 		return content + tableLines.join('\n');
@@ -80,14 +117,14 @@ export class TableManager {
 		notes: string
 	): Promise<boolean> {
 		try {
-			const content = await this.app.vault.read(file);
+			let content = await this.app.vault.read(file);
 			let tableFound = this.findTable(content);
 
 			// Create table if it doesn't exist
 			if (!tableFound) {
-				const updatedContent = this.createTable(content);
-				await this.app.vault.modify(file, updatedContent);
-				tableFound = this.findTable(updatedContent);
+				content = this.createTable(content);
+				await this.app.vault.modify(file, content);
+				tableFound = this.findTable(content);
 			}
 
 			if (!tableFound) {

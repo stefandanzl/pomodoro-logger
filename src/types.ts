@@ -9,6 +9,8 @@ export interface PomodoroSettings {
 	autoSchedule: string;         // CSV minutes (e.g., "0,30")
 	soundEnabled: boolean;
 	soundVolume: number;          // 0-100
+	tableHeader: string;          // Custom table header format
+	sectionTitle: string;         // Title for Pomodoro sessions section
 }
 
 /**
@@ -19,7 +21,9 @@ export const DEFAULT_SETTINGS: PomodoroSettings = {
 	pomodoroDuration: 25,
 	autoSchedule: '',
 	soundEnabled: true,
-	soundVolume: 50
+	soundVolume: 50,
+	tableHeader: '| Uhrzeit | Topic | +/- | Notizen |',
+	sectionTitle: '## Pomodoro Sessions'
 };
 
 /**
