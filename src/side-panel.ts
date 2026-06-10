@@ -55,8 +55,8 @@ export class PomodoroSidePanel extends ItemView {
 		// Legend
 		const legend = container.createEl('div', { cls: 'legend' });
 		legend.createEl('span', { text: 'Legend: ' });
-		legend.createEl('span', { cls: 'legend-item productive', text: '+' });
-		legend.createEl('span', { cls: 'legend-item unproductive', text: '-' });
+		legend.createEl('span', { cls: 'legend-item productive', text: '+ (Productive)' });
+		legend.createEl('span', { cls: 'legend-item unproductive', text: '- (Unproductive)' });
 		legend.createEl('span', { cls: 'legend-item empty', text: 'Empty' });
 
 		// Initial render
@@ -76,24 +76,13 @@ export class PomodoroSidePanel extends ItemView {
 			// Get last 90 days of data
 			const daysData = await this.loadDaysData(90);
 
-			// Create grid
+			// Create horizontal grid (days as columns)
 			const grid = gridContainer.createEl('div', { cls: 'contribution-grid' });
 
-			// Group by week for better layout
-			const weeks = this.groupByWeek(daysData);
-
-			// Render each week
-			weeks.forEach(week => {
-				const weekColumn = grid.createEl('div', { cls: 'week-column' });
-
-				// Day labels (Mon, Wed, Fri)
-				this.createDayLabels(weekColumn);
-
-				// Render each day in the week
-				week.forEach(dayData => {
-					const cell = this.createGridCell(dayData);
-					weekColumn.appendChild(cell);
-				});
+			// Render each day as a column
+			daysData.forEach(dayData => {
+				const dayColumn = this.createDayColumn(dayData);
+				grid.appendChild(dayColumn);
 			});
 
 		} catch (error) {
@@ -105,7 +94,7 @@ export class PomodoroSidePanel extends ItemView {
 	 * Load data for specified number of days
 	 */
 	private async loadDaysData(daysCount: number): Promise<Array<{ date: any; entries: PomodoroEntry[] }>> {
-		const daysData: Array<{ date: moment.Moment; entries: PomodoroEntry[] }> = [];
+		const daysData: Array<{ date: any; entries: PomodoroEntry[] }> = [];
 
 		for (let i = daysCount - 1; i >= 0; i--) {
 			const date = (moment as any)().subtract(i, 'days');
@@ -123,81 +112,61 @@ export class PomodoroSidePanel extends ItemView {
 	}
 
 	/**
-	 * Group days by week for grid layout
+	 * Create a single day column with Pomodoro cells
 	 */
-	private groupByWeek(daysData: Array<{ date: any; entries: PomodoroEntry[] }>): Array<Array<{ date: any; entries: PomodoroEntry[] }>> {
-		const weeks: Array<Array<{ date: moment.Moment; entries: PomodoroEntry[] }>> = [];
-		let currentWeek: Array<{ date: moment.Moment; entries: PomodoroEntry[] }> = [];
+	private createDayColumn(dayData: { date: any; entries: PomodoroEntry[] }): HTMLElement {
+		const { date, entries } = dayData;
 
-		daysData.forEach(dayData => {
-			const dayOfWeek = dayData.date.day();
+		const dayColumn = document.createElement('div');
+		dayColumn.addClass('day-column');
 
-			// Start new week on Sunday (day 0)
-			if (dayOfWeek === 0 && currentWeek.length > 0) {
-				weeks.push(currentWeek);
-				currentWeek = [];
-			}
+		// Day label at the top
+		const dayLabel = dayColumn.createEl('div', { cls: 'day-label' });
+		dayLabel.textContent = date.format('MM-DD');
+		dayLabel.title = date.format('YYYY-MM-DD dddd');
 
-			currentWeek.push(dayData);
-		});
+		// Pomodoro cells for this day
+		const cellsContainer = dayColumn.createEl('div', { cls: 'pomodoro-cells' });
 
-		// Add the last week
-		if (currentWeek.length > 0) {
-			weeks.push(currentWeek);
+		if (entries.length === 0) {
+			// Empty day - show one empty cell
+			const emptyCell = cellsContainer.createEl('div', { cls: 'grid-cell empty-cell' });
+			emptyCell.title = `${date.format('YYYY-MM-DD')}: No Pomodoros`;
+			emptyCell.addEventListener('click', () => this.handleCellClick(date, null));
+		} else {
+			// Show one cell per Pomodoro
+			entries.forEach((entry, index) => {
+				const cell = this.createPomodoroCell(entry, date, index);
+				cellsContainer.appendChild(cell);
+			});
 		}
 
-		return weeks;
+		return dayColumn;
 	}
 
 	/**
-	 * Create day labels for a week column
+	 * Create a single Pomodoro cell
 	 */
-	private createDayLabels(container: HTMLElement): void {
-		const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-		const labelDays = [0, 2, 4, 6]; // Show Sun, Tue, Thu, Sat labels
-
-		labelDays.forEach(dayIndex => {
-			if (dayIndex < days.length) {
-				const label = container.createEl('div', {
-					cls: 'day-label',
-					text: days[dayIndex]
-				});
-			}
-		});
-	}
-
-	/**
-	 * Create a single grid cell
-	 */
-	private createGridCell(dayData: { date: any; entries: PomodoroEntry[] }): HTMLElement {
+	private createPomodoroCell(entry: PomodoroEntry, date: any, index: number): HTMLElement {
 		const cell = document.createElement('div');
 		cell.addClass('grid-cell');
 
-		const { date, entries } = dayData;
-
-		// Determine cell color based on entries
-		if (entries.length === 0) {
-			cell.addClass('empty-cell');
+		// Color based on sign
+		if (entry.sign === '+') {
+			cell.addClass('productive-cell');
+		} else if (entry.sign === '-') {
+			cell.addClass('unproductive-cell');
 		} else {
-			const hasPositive = entries.some(e => e.sign === '+');
-			const hasNegative = entries.some(e => e.sign === '-');
-
-			if (hasPositive && !hasNegative) {
-				cell.addClass('productive-cell');
-			} else if (hasNegative && !hasPositive) {
-				cell.addClass('unproductive-cell');
-			} else {
-				cell.addClass('mixed-cell');
-			}
+			cell.addClass('empty-cell');
 		}
 
-		// Add tooltip with date and entry count
-		cell.title = `${date.format('YYYY-MM-DD')}: ${entries.length} Pomodoro(s)`;
+		// Tooltip with details
+		const timeRange = entry.timeRange || 'Unknown time';
+		const topic = entry.topic || 'No topic';
+		cell.title = `${date.format('YYYY-MM-DD')} - ${timeRange}\nTopic: ${topic}\nSign: ${entry.sign || 'empty'}`;
 
-		// Make cell clickable to edit entries
-		cell.addEventListener('click', () => {
-			this.handleCellClick(date, entries);
-		});
+		// Click to edit
+		cell.addEventListener('click', () => this.handleCellClick(date, entry));
 
 		return cell;
 	}
@@ -205,13 +174,13 @@ export class PomodoroSidePanel extends ItemView {
 	/**
 	 * Handle cell click
 	 */
-	private handleCellClick(date: any, entries: PomodoroEntry[]): void {
-		if (entries.length === 0) {
-			console.log('No entries for', date.format('YYYY-MM-DD'));
-			// Could open log modal pre-filled with this date
+	private handleCellClick(date: any, entry: PomodoroEntry | null): void {
+		if (entry) {
+			console.log('Edit entry:', entry);
+			// TODO: Open edit modal for existing entry
 		} else {
-			console.log('Entries for', date.format('YYYY-MM-DD'), ':', entries);
-			// Could open edit modal for existing entries
+			console.log('No entry for:', date.format('YYYY-MM-DD'));
+			// TODO: Could prompt to create a Pomodoro for this day
 		}
 	}
 

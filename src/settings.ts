@@ -21,13 +21,27 @@ export class PomodoroSettingTab extends PluginSettingTab {
 		// Daily Note Path
 		new Setting(containerEl)
 			.setName('Daily Note Path')
-			.setDesc('Moment.js syntax for daily note paths (e.g., YYYY-MM-DD, YYYY/YYYY-MM/YYYY-MM-DD)')
-			.addText((text) => {
+			.setDesc('Moment.js syntax for daily notes. Use [brackets] to escape literal text. Examples: "YYYY-MM-DD" or "[Journal]/YYYY/[YYYY]-[MM]/YYYY-MM-DD dd"')
+			.addTextArea((text) => {
 				text
 					.setPlaceholder('YYYY-MM-DD')
 					.setValue(this.plugin.settings.dailyNotePath)
 					.onChange(async (value) => {
 						this.plugin.settings.dailyNotePath = value;
+						await this.plugin.saveSettings();
+					});
+			});
+
+		// Daily Notes Creation Command
+		new Setting(containerEl)
+			.setName('Daily Notes Creation Command')
+			.setDesc('Plugin command to create daily notes (format: "plugin-id:command"). Leave empty to only work with existing notes. Example: "daily-notes:open-today-note"')
+			.addText((text) => {
+				text
+					.setPlaceholder('plugin-id:command')
+					.setValue(this.plugin.settings.dailyNotesCommand)
+					.onChange(async (value) => {
+						this.plugin.settings.dailyNotesCommand = value;
 						await this.plugin.saveSettings();
 					});
 			});

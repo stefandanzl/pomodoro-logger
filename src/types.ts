@@ -4,13 +4,14 @@ import { moment } from 'obsidian';
  * Plugin settings interface using Obsidian's declarative settings API
  */
 export interface PomodoroSettings {
-	dailyNotePath: string;        // Moment.js syntax (e.g., "YYYY-MM-DD")
-	pomodoroDuration: number;     // Minutes (default: 25)
-	autoSchedule: string;         // CSV minutes (e.g., "0,30")
+	dailyNotePath: string;           // Moment.js syntax (e.g., "[Journal]/YYYY/[YYYY]-[MM]/YYYY-MM-DD dd")
+	dailyNotesCommand: string;       // Command for creating daily notes (format: "plugin-id:command")
+	pomodoroDuration: number;        // Minutes (default: 25)
+	autoSchedule: string;            // CSV minutes (e.g., "0,30")
 	soundEnabled: boolean;
-	soundVolume: number;          // 0-100
-	tableHeader: string;          // Custom table header format
-	sectionTitle: string;         // Title for Pomodoro sessions section
+	soundVolume: number;             // 0-100
+	tableHeader: string;             // Custom table header format
+	sectionTitle: string;            // Title for Pomodoro sessions section
 }
 
 /**
@@ -18,6 +19,7 @@ export interface PomodoroSettings {
  */
 export const DEFAULT_SETTINGS: PomodoroSettings = {
 	dailyNotePath: 'YYYY-MM-DD',
+	dailyNotesCommand: '',           // Empty = only work with existing files
 	pomodoroDuration: 25,
 	autoSchedule: '',
 	soundEnabled: true,

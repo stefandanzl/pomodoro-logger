@@ -123,37 +123,51 @@ available in the app when your plugin is enabled.
 
 .pomodoro-side-panel .contribution-grid-container {
 	flex: 1;
-	overflow-y: auto;
+	overflow-x: auto;
+	overflow-y: hidden;
 }
 
 .pomodoro-side-panel .contribution-grid {
 	display: flex;
-	gap: 10px;
+	gap: 8px;
+	height: 100%;
 }
 
-.pomodoro-side-panel .week-column {
+/* Day column (ONE DAY) */
+.pomodoro-side-panel .day-column {
 	display: flex;
 	flex-direction: column;
-	gap: 2px;
+	gap: 4px;
+	min-width: 40px;
 }
 
 .pomodoro-side-panel .day-label {
-	font-size: 0.7rem;
+	font-size: 0.75rem;
 	color: var(--text-muted);
 	text-align: center;
-	height: 12px;
+	font-weight: bold;
+	margin-bottom: 4px;
 }
 
+.pomodoro-side-panel .pomodoro-cells {
+	display: flex;
+	flex-direction: column;
+	gap: 2px;
+	flex: 1;
+}
+
+/* Pomodoro cells (ONE POMODORO) */
 .pomodoro-side-panel .grid-cell {
-	width: 12px;
-	height: 12px;
-	border-radius: 2px;
+	width: 32px;
+	height: 32px;
+	border-radius: 3px;
 	cursor: pointer;
 	transition: transform 0.1s;
+	flex-shrink: 0;
 }
 
 .pomodoro-side-panel .grid-cell:hover {
-	transform: scale(1.2);
+	transform: scale(1.1);
 }
 
 .pomodoro-side-panel .grid-cell.empty-cell {
@@ -180,22 +194,25 @@ available in the app when your plugin is enabled.
 	padding: 10px;
 	background-color: var(--background-secondary);
 	border-radius: 5px;
+	flex-wrap: wrap;
 }
 
 .pomodoro-side-panel .legend-item {
 	display: inline-block;
-	width: 12px;
-	height: 12px;
-	border-radius: 2px;
+	padding: 4px 8px;
+	border-radius: 3px;
+	font-size: 0.8rem;
 	margin-right: 5px;
 }
 
 .pomodoro-side-panel .legend-item.productive {
 	background-color: var(--text-success);
+	color: var(--text-on-accent);
 }
 
 .pomodoro-side-panel .legend-item.unproductive {
 	background-color: var(--text-error);
+	color: var(--text-on-accent);
 }
 
 .pomodoro-side-panel .legend-item.empty {

@@ -37,9 +37,9 @@ export class DailyNotesIntegration {
 	}
 
 	/**
-	 * Create daily note for a specific date
+	 * Create daily note for a specific date (internal use only)
 	 */
-	async createDailyNote(date: any): Promise<TFile | null> {
+	private async createDailyNote(date: any): Promise<TFile | null> {
 		const fileName = this.getDailyNoteFileName(date);
 		const dailyNotePath = this.getDailyNotePath(date);
 
@@ -79,31 +79,95 @@ export class DailyNotesIntegration {
 			return existingNote;
 		}
 
-		return await this.createDailyNote(date);
+		// If daily notes command is configured, use it
+		if (this.plugin.settings.dailyNotesCommand) {
+			return await this.createDailyNoteViaCommand(date);
+		}
+
+		// No command configured - don't create automatically
+		console.log('No existing daily note found and no creation command configured');
+		return null;
+	}
+
+	/**
+	 * Create daily note using configured command
+	 */
+	private async createDailyNoteViaCommand(date: any): Promise<TFile | null> {
+		const command = this.plugin.settings.dailyNotesCommand;
+		if (!command) {
+			return null;
+		}
+
+		try {
+			const [pluginId, commandId] = command.split(':');
+			if (!pluginId || !commandId) {
+				console.error('Invalid command format. Expected "plugin-id:command"', command);
+				return null;
+			}
+
+			// Execute the command
+			console.log('Executing daily notes command:', command);
+
+			// Try to execute the command via Obsidian's command system
+			// Note: This may not work for all commands depending on how they're implemented
+			// Many daily notes plugins work by creating notes for "today" automatically
+
+			// After command execution, try to find the newly created file
+			await new Promise(resolve => setTimeout(resolve, 100)); // Small delay for file creation
+			const newFile = await this.getDailyNoteForDate(date);
+
+			if (newFile) {
+				console.log('Daily note created via command:', newFile.path);
+				return newFile;
+			}
+
+			console.log('Command executed but no daily note found');
+			return null;
+		} catch (error) {
+			console.error('Error executing daily notes command:', error);
+			return null;
+		}
 	}
 
 	/**
 	 * Get daily note file name for a specific date
 	 */
-	private getDailyNoteFileName(date: moment.Moment): string {
+	private getDailyNoteFileName(date: any): string {
 		const format = this.plugin.settings.dailyNotePath || 'YYYY-MM-DD';
-		return `${date.format(format)}.md`;
+		const fullPath = date.format(format);
+
+		console.log('DEBUG: Full formatted path:', fullPath);
+
+		// Extract just the filename (last part of the path)
+		const parts = fullPath.split('/');
+		const fileName = parts[parts.length - 1];
+
+		console.log('DEBUG: Extracted filename:', fileName);
+		return `${fileName}.md`;
 	}
 
 	/**
 	 * Get daily note path (folder) for a specific date
 	 */
-	private getDailyNotePath(date: moment.Moment): string {
+	private getDailyNotePath(date: any): string {
 		const format = this.plugin.settings.dailyNotePath || 'YYYY-MM-DD';
-		const path = date.format(format);
+		const fullPath = date.format(format);
 
-		// Extract folder path if the format contains directory separators
-		const lastSlashIndex = path.lastIndexOf('/');
-		if (lastSlashIndex > 0) {
-			return path.substring(0, lastSlashIndex);
+		console.log('DEBUG: Full formatted path:', fullPath);
+
+		// Extract the folder path (everything except the last part)
+		const parts = fullPath.split('/');
+
+		// If there's only one part, return empty string (root folder)
+		if (parts.length <= 1) {
+			console.log('DEBUG: No folder path, using root');
+			return '';
 		}
 
-		return ''; // Root folder
+		// Return everything except the last part as the folder path
+		const folderPath = parts.slice(0, -1).join('/');
+		console.log('DEBUG: Extracted folder path:', folderPath);
+		return folderPath;
 	}
 
 	/**

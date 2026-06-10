@@ -135,7 +135,7 @@ export class LogModal extends Modal {
 			// Get or create daily note
 			const dailyNote = await this.dailyNotes.getOrCreateDailyNote(endTime);
 			if (!dailyNote) {
-				new Notice('Failed to create daily note');
+				new Notice('Daily note not found. Please create it first or configure a creation command in settings.');
 				return;
 			}
 
