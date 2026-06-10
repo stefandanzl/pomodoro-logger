@@ -127,7 +127,9 @@ export class PomodoroSettingTab extends PluginSettingTab {
 					});
 				})
 				.addDropdown((dropdown) => {
-					dropdown.addOption('starttime', 'Start Time');
+					dropdown.addOption('starttime', 'Start Time (actual start time)');
+					dropdown.addOption('timerange', 'Time Range (HH:mm - HH:mm)');
+					dropdown.addOption('endtime', 'End Time (just end time)');
 					dropdown.addOption('topic', 'Topic');
 					dropdown.addOption('productivity', 'Productivity (+/-)');
 					dropdown.addOption('notes', 'Notes');

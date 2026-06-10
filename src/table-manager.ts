@@ -49,7 +49,11 @@ export class TableManager {
 	private mapColumnToData(column: any, startTime: any, endTime: any, topic: string, sign: string, notes: string): string {
 		switch (column.purpose.toLowerCase()) {
 			case 'starttime':
+				return startTime.format('HH:mm');
+			case 'timerange':
 				return `${startTime.format('HH:mm')} - ${endTime.format('HH:mm')}`;
+			case 'endtime':
+				return endTime.format('HH:mm');
 			case 'productivity':
 				return sign;
 			case 'topic':
