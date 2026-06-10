@@ -1,5 +1,6 @@
 import { PluginSettingTab, App, Setting } from 'obsidian';
 import PomodoroLoggerPlugin from './main';
+import { TableColumn } from './types';
 
 /**
  * Settings tab for the Pomodoro Logger plugin
@@ -97,22 +98,60 @@ export class PomodoroSettingTab extends PluginSettingTab {
 					});
 			});
 
-		// Table Header
+		// Table Columns
 		new Setting(containerEl)
-			.setName('Table Header')
-			.setDesc('Custom table header format (must match column structure)')
-			.addTextArea((text) => {
-				text
-					.setPlaceholder('| Uhrzeit | Topic | +/- | Notizen |')
-					.setValue(this.plugin.settings.tableHeader)
-					.onChange(async (value) => {
-						this.plugin.settings.tableHeader = value;
-						await this.plugin.saveSettings();
-					});
+			.setName('Table Columns')
+			.setDesc('Configure the columns in your Pomodoro table. Add, remove, and edit columns below.')
+			.addButton((btn) => {
+				btn.setButtonText('Add Column');
+				btn.setTooltip('Add a new table column');
+				btn.onClick(() => {
+					const newColumn: TableColumn = { name: 'New Column', purpose: 'custom' };
+					this.plugin.settings.tableColumns.push(newColumn);
+					this.plugin.saveSettings();
+					this.display(); // Refresh the settings UI
+				});
 			});
 
+		// Display existing columns
+		this.plugin.settings.tableColumns.forEach((column, index) => {
+			new Setting(containerEl)
+				.setName(`Column: ${column.name}`)
+				.setDesc(`Purpose: ${column.purpose}`)
+				.addText((text) => {
+					text.setValue(column.name);
+					text.setPlaceholder('Column Name');
+					text.onChange(async (value) => {
+						column.name = value;
+						await this.plugin.saveSettings();
+					});
+				})
+				.addDropdown((dropdown) => {
+					dropdown.addOption('starttime', 'Start Time');
+					dropdown.addOption('topic', 'Topic');
+					dropdown.addOption('productivity', 'Productivity (+/-)');
+					dropdown.addOption('notes', 'Notes');
+					dropdown.addOption('custom', 'Custom');
+
+					dropdown.setValue(column.purpose);
+					dropdown.onChange(async (value) => {
+						column.purpose = value;
+						await this.plugin.saveSettings();
+					});
+				})
+				.addButton((btn) => {
+					btn.setButtonText('Remove');
+					btn.setTooltip(`Remove column "${column.name}"`);
+					btn.onClick(() => {
+						this.plugin.settings.tableColumns.splice(index, 1);
+						this.plugin.saveSettings();
+						this.display(); // Refresh the settings UI
+					});
+				});
+		});
+
 		containerEl.createEl('p', {
-			text: 'Note: Markdown table separators are auto-generated based on your header formatting.',
+			text: 'Standard column purposes: starttime (time range), topic, productivity (+/-), notes',
 			cls: 'setting-item-description'
 		});
 

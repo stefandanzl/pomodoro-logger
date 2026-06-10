@@ -1,6 +1,14 @@
 import { moment } from 'obsidian';
 
 /**
+ * Table column configuration
+ */
+export interface TableColumn {
+	name: string;        // Column name (e.g., "Start Time", "Topic")
+	purpose: string;      // Column purpose (e.g., "starttime", "productivity", "notes")
+}
+
+/**
  * Plugin settings interface using Obsidian's declarative settings API
  */
 export interface PomodoroSettings {
@@ -10,7 +18,7 @@ export interface PomodoroSettings {
 	autoSchedule: string;            // CSV minutes (e.g., "0,30")
 	soundEnabled: boolean;
 	soundVolume: number;             // 0-100
-	tableHeader: string;             // Custom table header format
+	tableColumns: TableColumn[];      // Table column configuration
 	sectionTitle: string;            // Title for Pomodoro sessions section
 }
 
@@ -24,7 +32,12 @@ export const DEFAULT_SETTINGS: PomodoroSettings = {
 	autoSchedule: '',
 	soundEnabled: true,
 	soundVolume: 50,
-	tableHeader: '| Uhrzeit | Topic | +/- | Notizen |',
+	tableColumns: [
+		{ name: 'Uhrzeit', purpose: 'starttime' },
+		{ name: 'Topic', purpose: 'topic' },
+		{ name: '+/-', purpose: 'productivity' },
+		{ name: 'Notizen', purpose: 'notes' }
+	],
 	sectionTitle: '## Pomodoro Sessions'
 };
 

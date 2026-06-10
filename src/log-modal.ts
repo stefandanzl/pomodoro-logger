@@ -12,6 +12,7 @@ export class LogModal extends Modal {
 	private tableManager: TableManager;
 
 	// Form elements
+	private dateInput: HTMLInputElement;
 	private startTimeInput: HTMLInputElement;
 	private endTimeInput: HTMLInputElement;
 	private topicInput: HTMLInputElement;
@@ -28,7 +29,9 @@ export class LogModal extends Modal {
 	onOpen() {
 		const { contentEl } = this;
 		contentEl.empty();
+		contentEl.addClass('pomodoro-log-modal');
 
+		// Header
 		contentEl.createEl('h2', { text: 'Log Pomodoro Session' });
 
 		// Create form
@@ -39,18 +42,30 @@ export class LogModal extends Modal {
 			});
 		});
 
-		// Start Time
-		form.createEl('label', { text: 'Start Time:' });
-		this.startTimeInput = form.createEl('input', {
-			type: 'datetime-local',
+		// Date selector
+		form.createEl('label', { text: 'Date:' });
+		this.dateInput = form.createEl('input', {
+			type: 'date',
 			attr: { required: '' }
 		});
 
+		// Time inputs container (flexbox for side-by-side)
+		const timeContainer = form.createEl('div', { cls: 'time-inputs-container' });
+
+		// Start Time
+		const startTimeContainer = timeContainer.createEl('div', { cls: 'time-input-group' });
+		startTimeContainer.createEl('label', { text: 'Start Time:' });
+		this.startTimeInput = startTimeContainer.createEl('input', {
+			type: 'time',
+			attr: { required: '', step: '60' } // Step by minutes
+		});
+
 		// End Time
-		form.createEl('label', { text: 'End Time:' });
-		this.endTimeInput = form.createEl('input', {
-			type: 'datetime-local',
-			attr: { required: '' }
+		const endTimeContainer = timeContainer.createEl('div', { cls: 'time-input-group' });
+		endTimeContainer.createEl('label', { text: 'End Time:' });
+		this.endTimeInput = endTimeContainer.createEl('input', {
+			type: 'time',
+			attr: { required: '', step: '60' } // Step by minutes
 		});
 
 		// Topic
@@ -64,8 +79,8 @@ export class LogModal extends Modal {
 		form.createEl('label', { text: 'Productivity (+/-):' });
 		this.signSelect = form.createEl('select');
 		this.signSelect.createEl('option', { value: '', text: 'Select...' });
-		this.signSelect.createEl('option', { value: '+', text: '+' });
-		this.signSelect.createEl('option', { value: '-', text: '-' });
+		this.signSelect.createEl('option', { value: '+', text: '+ (Productive)' });
+		this.signSelect.createEl('option', { value: '-', text: '- (Unproductive)' });
 
 		// Notes
 		form.createEl('label', { text: 'Notes:' });
@@ -78,7 +93,8 @@ export class LogModal extends Modal {
 
 		const submitBtn = buttonContainer.createEl('button', {
 			type: 'submit',
-			text: 'Log Pomodoro'
+			text: 'Log Pomodoro',
+			cls: 'mod-cta'
 		});
 
 		const cancelBtn = buttonContainer.createEl('button', {
@@ -87,21 +103,64 @@ export class LogModal extends Modal {
 		});
 		cancelBtn.addEventListener('click', () => this.close());
 
-		// Pre-fill with default values
+		// Pre-fill with smart defaults
 		this.prefillDefaultValues();
 	}
 
 	/**
-	 * Pre-fill form with default values
+	 * Pre-fill form with smart defaults
 	 */
 	private prefillDefaultValues(): void {
 		const now = (moment as any)();
 		const durationMinutes = this.plugin.settings.pomodoroDuration;
-		const startTime = now.clone().subtract(durationMinutes, 'minutes');
 
-		// Format for datetime-local input (YYYY-MM-DDTHH:mm)
-		this.startTimeInput.value = startTime.format('YYYY-MM-DDTHH:mm');
-		this.endTimeInput.value = now.format('YYYY-MM-DDTHH:mm');
+		// Set date to today
+		this.dateInput.value = now.format('YYYY-MM-DD');
+
+		// Auto-schedule smart time filling
+		const autoScheduleMinutes = this.getAutoScheduleMinutes();
+		const currentMinute = now.minutes();
+
+		// Calculate the best end time based on NEXT scheduled slot (break happens AFTER Pomodoro)
+		let suggestedEndMoment = now.clone().second(0); // Round to current minute
+
+		if (autoScheduleMinutes.length > 0) {
+			// Find the NEXT scheduled minute (> current minute)
+			const sortedSchedules = [...autoScheduleMinutes].sort((a, b) => a - b); // Sort ascending
+
+			// Find the next scheduled minute (> current minute)
+			let nextScheduledMinute = sortedSchedules.find(min => min > currentMinute);
+
+			// If no more scheduled minutes this hour, move to next hour's first slot
+			if (nextScheduledMinute === undefined) {
+				nextScheduledMinute = sortedSchedules[0];
+				suggestedEndMoment = suggestedEndMoment.add(1, 'hour').minute(nextScheduledMinute);
+			} else {
+				suggestedEndMoment = suggestedEndMoment.minute(nextScheduledMinute);
+			}
+		}
+
+		// Calculate start time based on duration
+		const suggestedStartMoment = suggestedEndMoment.clone().subtract(durationMinutes, 'minutes');
+
+		// Format times as HH:mm
+		this.endTimeInput.value = suggestedEndMoment.format('HH:mm');
+		this.startTimeInput.value = suggestedStartMoment.format('HH:mm');
+	}
+
+	/**
+	 * Get auto-schedule minutes as numbers
+	 */
+	private getAutoScheduleMinutes(): number[] {
+		const scheduleStr = this.plugin.settings.autoSchedule.trim();
+		if (!scheduleStr) {
+			return [];
+		}
+
+		return scheduleStr
+			.split(',')
+			.map((s: string) => parseInt(s.trim(), 10))
+			.filter((n: number) => !isNaN(n) && n >= 0 && n < 60);
 	}
 
 	/**
@@ -110,20 +169,30 @@ export class LogModal extends Modal {
 	private async onSubmit(): Promise<void> {
 		try {
 			// Get form values
-			const startTime = (moment as any)(this.startTimeInput.value, 'YYYY-MM-DDTHH:mm');
-			const endTime = (moment as any)(this.endTimeInput.value, 'YYYY-MM-DDTHH:mm');
+			const dateStr = this.dateInput.value;
+			const startTimeStr = this.startTimeInput.value;
+			const endTimeStr = this.endTimeInput.value;
 			const topic = this.topicInput.value.trim();
 			const sign = this.signSelect.value as '+' | '-' | '';
 			const notes = this.notesTextarea.value.trim();
 
 			// Validate
-			if (!startTime.isValid() || !endTime.isValid()) {
-				new Notice('Invalid time format');
+			if (!dateStr || !startTimeStr || !endTimeStr) {
+				new Notice('Please fill in all date and time fields');
 				return;
 			}
 
 			if (!topic) {
 				new Notice('Please enter a topic');
+				return;
+			}
+
+			// Parse date and times
+			const startTime = (moment as any)(`${dateStr} ${startTimeStr}`, 'YYYY-MM-DD HH:mm');
+			const endTime = (moment as any)(`${dateStr} ${endTimeStr}`, 'YYYY-MM-DD HH:mm');
+
+			if (!startTime.isValid() || !endTime.isValid()) {
+				new Notice('Invalid date or time format');
 				return;
 			}
 

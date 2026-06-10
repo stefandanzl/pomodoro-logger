@@ -232,6 +232,86 @@ available in the app when your plugin is enabled.
 	color: var(--text-on-accent);
 }
 
+/* Log Modal Specific Styles */
+.pomodoro-log-modal {
+	max-width: 600px;
+}
+
+.pomodoro-log-modal form {
+	display: flex;
+	flex-direction: column;
+	gap: 15px;
+}
+
+.pomodoro-log-modal label {
+	display: block;
+	font-weight: 600;
+	margin-bottom: 8px;
+	color: var(--text-normal);
+	font-size: 0.95rem;
+}
+
+.pomodoro-log-modal input[type="date"],
+.pomodoro-log-modal input[type="text"],
+.pomodoro-log-modal select,
+.pomodoro-log-modal textarea {
+	width: 100%;
+	padding: 10px;
+	margin: 0 0 5px 0;
+	border: 1px solid var(--background-modifier-border);
+	border-radius: 6px;
+	background-color: var(--background-primary);
+	color: var(--text-normal);
+	font-size: 0.95rem;
+	transition: border-color 0.2s;
+}
+
+.pomodoro-log-modal input:focus,
+.pomodoro-log-modal select:focus,
+.pomodoro-log-modal textarea:focus {
+	border-color: var(--interactive-accent);
+	outline: none;
+}
+
+/* Time inputs side-by-side */
+.pomodoro-log-modal .time-inputs-container {
+	display: flex;
+	gap: 20px;
+	margin: 5px 0;
+}
+
+.pomodoro-log-modal .time-input-group {
+	flex: 1;
+	display: flex;
+	flex-direction: column;
+}
+
+.pomodoro-log-modal .time-input-group input[type="time"] {
+	width: 100%;
+	margin: 0;
+}
+
+.pomodoro-log-modal .time-input-group label {
+	margin-bottom: 5px;
+	font-size: 0.85rem;
+	color: var(--text-muted);
+}
+
+.pomodoro-log-modal textarea {
+	resize: vertical;
+	font-family: inherit;
+	line-height: 1.5;
+}
+
+.pomodoro-log-modal select {
+	padding: 10px;
+	cursor: pointer;
+	background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='currentColor' d='M6 9l4-4-4-4'/%3E%3C/svg%3E");
+	background-repeat: no-repeat;
+	background-position: right 10px center;
+	padding-right: 30px;
+}
+
 /* Form element styling - scoped to modals */
 .pomodoro-timer-modal input[type="datetime-local"],
 .pomodoro-timer-modal input[type="text"],

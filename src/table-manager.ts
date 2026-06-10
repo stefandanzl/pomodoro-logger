@@ -13,10 +13,16 @@ export class TableManager {
 	}
 
 	/**
-	 * Get the configured table header
+	 * Get the configured table header dynamically from columns
 	 */
 	private get tableHeader(): string {
-		return this.plugin.settings.tableHeader || '| Uhrzeit | Topic | +/- | Notizen |';
+		const columns = this.plugin.settings.tableColumns || [];
+		if (columns.length === 0) {
+			// Fallback to default header
+			return '| Uhrzeit | Topic | +/- | Notizen |';
+		}
+		const columnNames = columns.map(col => col.name).join(' | ');
+		return `| ${columnNames} |`;
 	}
 
 	/**
@@ -30,9 +36,30 @@ export class TableManager {
 	 * Generate table separator from header
 	 */
 	private generateTableSeparator(): string {
-		const header = this.tableHeader;
-		const columns = header.split('|').filter(col => col.trim() !== '');
+		const columns = this.plugin.settings.tableColumns || [];
+		if (columns.length === 0) {
+			return '|---|---|---|---|';
+		}
 		return '|' + columns.map(() => '---').join('|') + '|';
+	}
+
+	/**
+	 * Map column purpose to data field
+	 */
+	private mapColumnToData(column: any, startTime: any, endTime: any, topic: string, sign: string, notes: string): string {
+		switch (column.purpose.toLowerCase()) {
+			case 'starttime':
+				return `${startTime.format('HH:mm')} - ${endTime.format('HH:mm')}`;
+			case 'productivity':
+				return sign;
+			case 'topic':
+				return topic;
+			case 'notes':
+				return notes;
+			case 'custom':
+			default:
+				return ''; // Custom columns default to empty
+		}
 	}
 
 	/**
@@ -132,9 +159,12 @@ export class TableManager {
 				return false;
 			}
 
-			// Create the new row
-			const timeRange = `${startTime.format('HH:mm')} - ${endTime.format('HH:mm')}`;
-			const row = `| ${timeRange} | ${topic} | ${sign} | ${notes} |`;
+			// Create the new row dynamically based on configured columns
+			const columns = this.plugin.settings.tableColumns || [];
+			const cellValues = columns.map(col =>
+				this.mapColumnToData(col, startTime, endTime, topic, sign, notes)
+			);
+			const row = `| ${cellValues.join(' | ')} |`;
 
 			// Insert the row after the table
 			const lines = content.split('\n');
