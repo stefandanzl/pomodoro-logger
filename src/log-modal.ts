@@ -121,31 +121,49 @@ export class LogModal extends Modal {
 		const autoScheduleMinutes = this.getAutoScheduleMinutes();
 		const currentMinute = now.minutes();
 
-		// Calculate the best end time based on NEXT scheduled slot (break happens AFTER Pomodoro)
-		let suggestedEndMoment = now.clone().second(0); // Round to current minute
+		// Calculate the best START time based on scheduled start times
+		let suggestedStartMoment = now.clone().second(0); // Round to current minute
 
 		if (autoScheduleMinutes.length > 0) {
-			// Find the NEXT scheduled minute (> current minute)
 			const sortedSchedules = [...autoScheduleMinutes].sort((a, b) => a - b); // Sort ascending
 
-			// Find the next scheduled minute (> current minute)
-			let nextScheduledMinute = sortedSchedules.find(min => min > currentMinute);
+			// Find the most recent scheduled minute (<= current minute) to use as start time reference
+			let lastSchedulePoint = currentMinute;
 
-			// If no more scheduled minutes this hour, move to next hour's first slot
-			if (nextScheduledMinute === undefined) {
-				nextScheduledMinute = sortedSchedules[0];
-				suggestedEndMoment = suggestedEndMoment.add(1, 'hour').minute(nextScheduledMinute);
+			for (const min of sortedSchedules) {
+				if (min <= currentMinute) {
+					lastSchedulePoint = min;
+				}
+			}
+
+			// If current minute is before the first scheduled point, use last point from previous hour
+			if (lastSchedulePoint === currentMinute && currentMinute < sortedSchedules[0]) {
+				lastSchedulePoint = sortedSchedules[sortedSchedules.length - 1];
+				suggestedStartMoment = suggestedStartMoment.subtract(1, 'hour').minute(lastSchedulePoint);
 			} else {
-				suggestedEndMoment = suggestedEndMoment.minute(nextScheduledMinute);
+				suggestedStartMoment = suggestedStartMoment.minute(lastSchedulePoint);
+			}
+
+			// Check if we're past the duration and should move to next slot
+			const timeSinceStart = currentMinute - lastSchedulePoint;
+			if (timeSinceStart >= durationMinutes) {
+				// Move to next scheduled slot
+				const nextIdx = sortedSchedules.indexOf(lastSchedulePoint) + 1;
+				if (nextIdx < sortedSchedules.length) {
+					suggestedStartMoment = suggestedStartMoment.minute(sortedSchedules[nextIdx]);
+				} else {
+					// Wrap to next hour
+					suggestedStartMoment = suggestedStartMoment.add(1, 'hour').minute(sortedSchedules[0]);
+				}
 			}
 		}
 
-		// Calculate start time based on duration
-		const suggestedStartMoment = suggestedEndMoment.clone().subtract(durationMinutes, 'minutes');
+		// Calculate end time based on duration
+		const suggestedEndMoment = suggestedStartMoment.clone().add(durationMinutes, 'minutes');
 
 		// Format times as HH:mm
-		this.endTimeInput.value = suggestedEndMoment.format('HH:mm');
 		this.startTimeInput.value = suggestedStartMoment.format('HH:mm');
+		this.endTimeInput.value = suggestedEndMoment.format('HH:mm');
 	}
 
 	/**
